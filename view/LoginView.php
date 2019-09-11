@@ -42,9 +42,9 @@ class LoginView
 	}
 
 	public function generateRegisterUser($queryString)
-  {
-      return '<a href="?' . $queryString . '" name="register">Register a new user</a>';
-  }
+	{
+		return '<a href="?' . $queryString . '" name="register">Register a new user</a>';
+	}
 
 	/**
 	 * Generate HTML code on the output buffer for the logout button
@@ -90,8 +90,18 @@ class LoginView
 	}
 
 	//CREATE GET-FUNCTIONS TO FETCH REQUEST VARIABLES
-	private function getRequestUserName()
+	private function getRequestUserNameFromDB($username)
 	{
-		//RETURN REQUEST VARIABLE: USERNAME
+		require_once('./db.php');
+
+		$sql = "SELECT * FROM users WHERE user_username='$username';";
+		$result = mysqli_query($connection, $sql);
+		$resultCheck = mysqli_num_rows($result);
+
+		if ($resultCheck > 0) {
+			while ($row = mysqli_fetch_assoc($result)) {
+				echo  $row['user_username'];
+			}
+		}
 	}
 }

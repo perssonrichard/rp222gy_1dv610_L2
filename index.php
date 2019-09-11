@@ -20,4 +20,3 @@ $view = new LayoutView();
 
 
 $view->render(false, $loginView, $registerView, $dtv);
-

@@ -28,7 +28,7 @@ class LayoutView
 
   private function linkToRender($isLoggedIn, LoginView $loginView, RegisterView $registerView)
   {
-    if (($_SERVER['QUERY_STRING'] == $this->registerQueryString)) {
+    if (isset($_GET[$this->registerQueryString])) {
       return $registerView->generateBackToLogin();
     } else if ($isLoggedIn == false) {
       return $loginView->generateRegisterUser($this->registerQueryString);
@@ -37,7 +37,7 @@ class LayoutView
 
   private function formToRender(LoginView $loginView, RegisterView $registerView)
   {
-    if ($_SERVER['QUERY_STRING'] == $this->registerQueryString) {
+    if (isset($_GET[$this->registerQueryString])) {
       return $registerView->response();
     } else {
       return $loginView->response();
