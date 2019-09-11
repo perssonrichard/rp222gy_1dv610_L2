@@ -11,14 +11,12 @@ class LoginView
 	private static $keep = 'LoginView::KeepMeLoggedIn';
 	private static $messageId = 'LoginView::Message';
 
-
-
 	/**
 	 * Create HTTP response
 	 *
 	 * Should be called after a login attempt has been determined
 	 *
-	 * @return  void BUT writes to standard output and cookies!
+	 * @return void BUT writes to standard output and cookies!
 	 */
 	public function response()
 	{
@@ -29,11 +27,10 @@ class LoginView
 
 			// If clicking the login button
 			if (isset($_POST[self::$login])) {
-				
+
 				if (empty($_POST[self::$name])) {
 					$message .= "Username is missing";
-				}
-				else if (empty($_POST[self::$password])) {
+				} else if (empty($_POST[self::$password])) {
 					$message .= "Password is missing";
 				}
 			}
@@ -43,6 +40,11 @@ class LoginView
 		//$response .= $this->generateLogoutButtonHTML($message);
 		return $response;
 	}
+
+	public function generateRegisterUser($queryString)
+  {
+      return '<a href="?' . $queryString . '" name="register">Register a new user</a>';
+  }
 
 	/**
 	 * Generate HTML code on the output buffer for the logout button

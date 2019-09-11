@@ -20,7 +20,6 @@ class DateTimeView
 		$year = date('Y');
 		$time = date('H:i:s');
 
-
 		$timeString = "$dayName, the $dayNumber of $month $year, The time is $time";
 
 		return '<p>' . $timeString . '</p>';
