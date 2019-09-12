@@ -2,6 +2,10 @@
 
 session_start();
 
+if (isset($_SESSION["loggedin"]) == false) {
+    $_SESSION["loggedin"] = false;
+}
+
 //INCLUDE THE FILES NEEDED...
 require_once('view/LoginView.php');
 require_once('view/RegisterView.php');
@@ -18,5 +22,4 @@ $registerView = new RegisterView();
 $dtv = new DateTimeView();
 $view = new LayoutView();
 
-
-$view->render(false, $loginView, $registerView, $dtv);
+$view->render($_SESSION['loggedin'], $loginView, $registerView, $dtv);

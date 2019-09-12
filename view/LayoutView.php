@@ -18,7 +18,7 @@ class LayoutView
           ' . $this->renderIsLoggedIn($isLoggedIn) . '
           
           <div class="container">
-              ' . $this->formToRender($loginView, $registerView) . '
+              ' . $this->viewToRender($loginView, $registerView) . '
               ' . $dtv->show() . '
           </div>
          </body>
@@ -32,10 +32,12 @@ class LayoutView
       return $registerView->generateBackToLogin();
     } else if ($isLoggedIn == false) {
       return $loginView->generateRegisterUser($this->registerQueryString);
+    } else if ($isLoggedIn) {
+      return '';
     }
   }
 
-  private function formToRender(LoginView $loginView, RegisterView $registerView)
+  private function viewToRender(LoginView $loginView, RegisterView $registerView)
   {
     if (isset($_GET[$this->registerQueryString])) {
       return $registerView->response();

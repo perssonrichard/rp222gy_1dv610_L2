@@ -1,5 +1,7 @@
 <?php
 
+require_once('HandleDatabase.php');
+
 class LoginView
 {
 	private static $login = 'LoginView::Login';
@@ -10,6 +12,8 @@ class LoginView
 	private static $cookiePassword = 'LoginView::CookiePassword';
 	private static $keep = 'LoginView::KeepMeLoggedIn';
 	private static $messageId = 'LoginView::Message';
+
+	private $usernameValue = '';
 
 	/**
 	 * Create HTTP response
@@ -28,17 +32,54 @@ class LoginView
 			// If clicking the login button
 			if (isset($_POST[self::$login])) {
 
+				// Save username input to usernameValue variable if it exist
+				isset($_POST[self::$name]) ? $this->usernameValue = $_POST[self::$name] : '';
+
+				// Check db for valid combination of username and password.
+				$validateLogin = HandleDatabase::compareUsernameAndPassword($_POST[self::$name], $_POST[self::$password]);
+
+				// Check for invalid input.
 				if (empty($_POST[self::$name])) {
 					$message .= "Username is missing";
 				} else if (empty($_POST[self::$password])) {
 					$message .= "Password is missing";
+				} else if ($validateLogin == false) {
+					$message .= "Wrong name or password";
+				}
+
+				// If login information is valid
+				if ($validateLogin) {
+					// Save cookie if "keep me logged in" is checked
+					if (isset($_POST[self::$keep])) {
+						$this->setCookies($_POST[self::$name], $_POST[self::$password]);
+						$message .= 'Welcome and you will be remembered';
+					} else {
+						$_SESSION['loggedin'] = true;
+						//Redirect to hardcoded link for testing purposes.
+						//header('Location: https://perssonrichard.com/1dv610/index.php');
+						header('Location: index.php');
+						die();
+					}
 				}
 			}
 		}
 
-		$response = $this->generateLoginFormHTML($message);
-		//$response .= $this->generateLogoutButtonHTML($message);
-		return $response;
+		if ($_SESSION["loggedin"] == false) {
+			$response = $this->generateLoginFormHTML($message);
+			return $response;
+		}
+		if ($_SESSION["loggedin"]) {
+			$response = $this->generateLogoutButtonHTML($message);
+			return $response;
+		}
+	}
+
+	private function setCookies($username, $password)
+	{
+		$passwordHash = password_hash($password, PASSWORD_BCRYPT);
+
+		setcookie(self::$cookieName, $username);
+		setcookie(self::$cookiePassword, $passwordHash);
 	}
 
 	public function generateRegisterUser($queryString)
@@ -75,7 +116,7 @@ class LoginView
 					<p id="' . self::$messageId . '">' . $message . '</p>
 					
 					<label for="' . self::$name . '">Username :</label>
-					<input type="text" id="' . self::$name . '" name="' . self::$name . '" value="" />
+					<input type="text" id="' . self::$name . '" name="' . self::$name . '" value="' . $this->usernameValue . '" />
 
 					<label for="' . self::$password . '">Password :</label>
 					<input type="password" id="' . self::$password . '" name="' . self::$password . '" />
@@ -87,21 +128,5 @@ class LoginView
 				</fieldset>
 			</form>
 		';
-	}
-
-	//CREATE GET-FUNCTIONS TO FETCH REQUEST VARIABLES
-	private function getRequestUserNameFromDB($username)
-	{
-		require_once('./db.php');
-
-		$sql = "SELECT * FROM users WHERE user_username='$username';";
-		$result = mysqli_query($connection, $sql);
-		$resultCheck = mysqli_num_rows($result);
-
-		if ($resultCheck > 0) {
-			while ($row = mysqli_fetch_assoc($result)) {
-				echo  $row['user_username'];
-			}
-		}
 	}
 }
