@@ -51,14 +51,22 @@ class LoginView
 				if ($validateLogin) {
 					// Save cookie if "keep me logged in" is checked
 					if (isset($_POST[self::$keep])) {
-						$this->setCookies($_POST[self::$name], $_POST[self::$password]);
-						$message .= 'Welcome and you will be remembered';
-					} else {
 						$_SESSION['loggedin'] = true;
+
+						$this->setCookies($_POST[self::$name], $_POST[self::$password]);
+
 						//Redirect to hardcoded link for testing purposes.
 						//header('Location: https://perssonrichard.com/1dv610/index.php');
 						header('Location: index.php');
-						die();
+						exit;
+
+					} else {
+						$_SESSION['loggedin'] = true;
+
+						//Redirect to hardcoded link for testing purposes.
+						//header('Location: https://perssonrichard.com/1dv610/index.php');
+						header('Location: index.php');
+						exit;
 					}
 				}
 			}
