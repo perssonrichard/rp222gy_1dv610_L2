@@ -2,8 +2,12 @@
 
 require_once('HandleDatabase.php');
 
+/**
+ * Class that Hhndles the login view
+ */
 class LoginView
 {
+	// Define HTML ID's
 	private static $login = 'LoginView::Login';
 	private static $logout = 'LoginView::Logout';
 	private static $name = 'LoginView::UserName';
@@ -13,6 +17,7 @@ class LoginView
 	private static $keep = 'LoginView::KeepMeLoggedIn';
 	private static $messageId = 'LoginView::Message';
 
+	// Save entered username to variable to prevent input field being empty on refresh
 	private $usernameValue = '';
 
 	/**
@@ -51,23 +56,17 @@ class LoginView
 				if ($validateLogin) {
 					// Save cookie if "keep me logged in" is checked
 					if (isset($_POST[self::$keep])) {
-						$_SESSION['loggedin'] = true;
-
 						$this->setCookies($_POST[self::$name], $_POST[self::$password]);
-
-						//Redirect to hardcoded link for testing purposes.
-						//header('Location: https://perssonrichard.com/1dv610/index.php');
-						header('Location: index.php');
-						exit;
-
-					} else {
-						$_SESSION['loggedin'] = true;
-
-						//Redirect to hardcoded link for testing purposes.
-						//header('Location: https://perssonrichard.com/1dv610/index.php');
-						header('Location: index.php');
-						exit;
 					}
+
+					$_SESSION['loggedin'] = true;
+
+					$_SESSION['showWelcome'] = true;
+
+					//Redirect to hardcoded link for testing purposes.
+					//header('Location: https://perssonrichard.com/1dv610/index.php');
+					header('Location: index.php');
+					exit;
 				}
 			}
 		}
@@ -76,13 +75,13 @@ class LoginView
 			$response = $this->generateLoginFormHTML($message);
 			return $response;
 		}
-		if ($_SESSION["loggedin"]) {
-			//TEMPORARY
+		if ($_SESSION["showWelcome"]) {
 			$message .= "Welcome";
-			//TEMPORARY
-			$response = $this->generateLogoutButtonHTML($message);
-			return $response;
+			$_SESSION['showWelcome'] = false;
 		}
+
+		$response = $this->generateLogoutButtonHTML($message);
+		return $response;
 	}
 
 	private function setCookies($username, $password)
