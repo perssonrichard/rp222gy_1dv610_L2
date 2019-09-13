@@ -36,7 +36,7 @@ class LoginView
 				isset($_POST[self::$name]) ? $this->usernameValue = $_POST[self::$name] : '';
 
 				// Check db for valid combination of username and password.
-				$validateLogin = HandleDatabase::compareUsernameAndPassword($_POST[self::$name], $_POST[self::$password]);
+				$validateLogin = HandleDatabase::verifyUsernameAndPassword($_POST[self::$name], $_POST[self::$password]);
 
 				// Check for invalid input.
 				if (empty($_POST[self::$name])) {
@@ -77,6 +77,9 @@ class LoginView
 			return $response;
 		}
 		if ($_SESSION["loggedin"]) {
+			//TEMPORARY
+			$message .= "Welcome";
+			//TEMPORARY
 			$response = $this->generateLogoutButtonHTML($message);
 			return $response;
 		}

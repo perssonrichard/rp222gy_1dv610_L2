@@ -37,7 +37,7 @@ class RegisterView
                 }
 
                 if ($_POST[self::$password] == $_POST[self::$repeatPassword]) {
-                    HandleDatabase::registerUserToDB($_POST[self::$name], $_POST[self::$password]);
+                    HandleDatabase::saveUserToDB($_POST[self::$name], $_POST[self::$password]);
                 }
             }
         }
