@@ -1,53 +1,29 @@
 <?php
 
-require_once('HandleDatabase.php');
-
 class RegisterView
 {
+    private $model;
+
+    // Define HTML ID's
     private static $messageId = 'RegisterView::Message';
     private static $name = 'RegisterView::UserName';
     private static $password = 'RegisterView::Password';
-    private static $repeatPassword = 'RegisterView::PasswordRepeat';
     private static $registration = 'DoRegistration';
 
-    private $usernameValue = '';
+
+    public function __construct(Model $model)
+    {
+        $this->model = $model;
+    }
 
     public function response()
     {
-        $message = '';
-
-        // If getting a POST request
-        if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-
-            // If clicking the register button
-            if (isset($_POST[self::$registration])) {
-
-                // Save username input to usernameValue variable
-                isset($_POST[self::$name]) ? $this->usernameValue = $_POST[self::$name] : '';
-
-                if (empty($_POST[self::$name])) {
-                    $message .= "Username has too few characters, at least 3 characters.<br>";
-                }
-
-                if (empty($_POST[self::$password])) {
-                    $message .= "Password has too few characters, at least 6 characters.<br>";
-                }
-                if (HandleDatabase::checkUsernameInDb($_POST[self::$name])) {
-                    $message .= "User exist, pick another username.<br>";
-                }
-
-                if ($_POST[self::$password] == $_POST[self::$repeatPassword]) {
-                    HandleDatabase::saveUserToDB($_POST[self::$name], $_POST[self::$password]);
-                }
-            }
-        }
-
-        $response = $this->generateRegisterFormHTML($message);
+        $response = $this->generateRegisterFormHTML($this->model->message);
 
         return $response;
     }
 
-    public function generateBackToLogin()
+    public function generateBackToLoginHTML()
     {
         return '<a href="?">Back to login</a>';
     }
@@ -61,7 +37,7 @@ class RegisterView
 				<legend>Register a new user - Write username and password</legend>
 					<p id="' . self::$messageId . '">' . $message . '</p>
 					<label for="' . self::$name . '">Username :</label>
-					<input type="text" size="20" name="' . self::$name . '" id="' . self::$name . '" value="' . $this->usernameValue . '">
+					<input type="text" size="20" name="' . self::$name . '" id="' . self::$name . '" value="' . $this->model->usernameVariable . '">
 					<br>
 					<label for="' . self::$password . '">Password  :</label>
 					<input type="password" size="20" name="' . self::$password . '" id="' . self::$password . '" value="">

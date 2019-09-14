@@ -1,98 +1,55 @@
 <?php
 
-require_once('HandleDatabase.php');
-
 /**
- * Class that Hhndles the login view
+ * Class that Handles the login view
  */
 class LoginView
 {
+	private $model;
+
 	// Define HTML ID's
 	private static $login = 'LoginView::Login';
 	private static $logout = 'LoginView::Logout';
 	private static $name = 'LoginView::UserName';
 	private static $password = 'LoginView::Password';
-	private static $cookieName = 'LoginView::CookieName';
-	private static $cookiePassword = 'LoginView::CookiePassword';
 	private static $keep = 'LoginView::KeepMeLoggedIn';
 	private static $messageId = 'LoginView::Message';
 
-	// Save entered username to variable to prevent input field being empty on refresh
-	private $usernameValue = '';
+	public function __construct(Model $model)
+	{
+		$this->model = $model;
+	}
 
-	/**
-	 * Create HTTP response
-	 *
-	 * Should be called after a login attempt has been determined
-	 *
-	 * @return void BUT writes to standard output and cookies!
-	 */
 	public function response()
 	{
-		$message = '';
+		$validateCookie = $this->model->validateCookies();
 
-		// If getting a POST request
-		if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-
-			// If clicking the login button
-			if (isset($_POST[self::$login])) {
-
-				// Save username input to usernameValue variable if it exist
-				isset($_POST[self::$name]) ? $this->usernameValue = $_POST[self::$name] : '';
-
-				// Check db for valid combination of username and password.
-				$validateLogin = HandleDatabase::verifyUsernameAndPassword($_POST[self::$name], $_POST[self::$password]);
-
-				// Check for invalid input.
-				if (empty($_POST[self::$name])) {
-					$message .= "Username is missing";
-				} else if (empty($_POST[self::$password])) {
-					$message .= "Password is missing";
-				} else if ($validateLogin == false) {
-					$message .= "Wrong name or password";
-				}
-
-				// If login information is valid
-				if ($validateLogin) {
-					// Save cookie if "keep me logged in" is checked
-					if (isset($_POST[self::$keep])) {
-						$this->setCookies($_POST[self::$name], $_POST[self::$password]);
-					}
-
-					$_SESSION['loggedin'] = true;
-
-					$_SESSION['showWelcome'] = true;
-
-					//Redirect to hardcoded link for testing purposes.
-					//header('Location: https://perssonrichard.com/1dv610/index.php');
-					header('Location: index.php');
-					exit;
-				}
-			}
+		if ($validateCookie) { 
+			$_SESSION["loggedin"] == true;
+			$this->model->message = "Welcome back with cookie";
 		}
 
 		if ($_SESSION["loggedin"] == false) {
-			$response = $this->generateLoginFormHTML($message);
+
+			if (isset($_SESSION['showBye']) && $_SESSION['showBye'] == true) {
+				$this->model->message = "Bye bye!";
+				$_SESSION['showBye'] = false;
+			}
+
+			$response = $this->generateLoginFormHTML($this->model->message);
 			return $response;
 		}
+
 		if ($_SESSION["showWelcome"]) {
-			$message .= "Welcome";
+			$this->model->message = "Welcome";
 			$_SESSION['showWelcome'] = false;
 		}
 
-		$response = $this->generateLogoutButtonHTML($message);
+		$response = $this->generateLogoutButtonHTML($this->model->message);
 		return $response;
 	}
 
-	private function setCookies($username, $password)
-	{
-		$passwordHash = password_hash($password, PASSWORD_BCRYPT);
-
-		setcookie(self::$cookieName, $username);
-		setcookie(self::$cookiePassword, $passwordHash);
-	}
-
-	public function generateRegisterUser($queryString)
+	public function generateRegisterUserHTML($queryString)
 	{
 		return '<a href="?' . $queryString . '" name="register">Register a new user</a>';
 	}
@@ -126,7 +83,7 @@ class LoginView
 					<p id="' . self::$messageId . '">' . $message . '</p>
 					
 					<label for="' . self::$name . '">Username :</label>
-					<input type="text" id="' . self::$name . '" name="' . self::$name . '" value="' . $this->usernameValue . '" />
+					<input type="text" id="' . self::$name . '" name="' . self::$name . '" value="' . $this->model->usernameVariable . '" />
 
 					<label for="' . self::$password . '">Password :</label>
 					<input type="password" id="' . self::$password . '" name="' . self::$password . '" />

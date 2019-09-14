@@ -2,7 +2,15 @@
 
 class LayoutView
 {
+  private $model;
+  private $controller;
   private $registerQueryString = 'register';
+
+  public function __construct(Model $model, Controller $controller)
+  {
+    $this->model = $model;
+    $this->controller = $controller;
+  }
 
   public function render($isLoggedIn, LoginView $loginView, RegisterView $registerView, DateTimeView $dtv)
   {
@@ -29,11 +37,9 @@ class LayoutView
   private function linkToRender($isLoggedIn, LoginView $loginView, RegisterView $registerView)
   {
     if (isset($_GET[$this->registerQueryString])) {
-      return $registerView->generateBackToLogin();
+      return $registerView->generateBackToLoginHTML();
     } else if ($isLoggedIn == false) {
-      return $loginView->generateRegisterUser($this->registerQueryString);
-    } else if ($isLoggedIn) {
-      return '';
+      return $loginView->generateRegisterUserHTML($this->registerQueryString);
     }
   }
 
