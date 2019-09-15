@@ -87,9 +87,10 @@ class Model
             $cookieUser = $_COOKIE[self::$loginCookieName];
             $cookiePw = $_COOKIE[self::$loginCookiePassword];
 
-            $verifyPassword = $this->verifyPassword($cookieUser, $cookiePw);
+            $dbUser = $this->fetchUserFromDb($cookieUser);
+            $dbPw = $dbUser['user_pwd'];
 
-            if ($verifyPassword) {
+            if ($cookiePw == $dbPw) {
                 return true;
             } else {
                 return false;
@@ -99,11 +100,20 @@ class Model
         }
     }
 
-    public function setCookies($username, $password)
+    public function setCookies($username)
     {
-        $passwordHash = password_hash($password, PASSWORD_BCRYPT);
+        $user = $this->fetchUserFromDb($username);
+        $pw = $user['user_pwd'];
 
         setcookie(self::$loginCookieName, $username);
-        setcookie(self::$loginCookiePassword, $passwordHash);
+        setcookie(self::$loginCookiePassword, $pw);
+    }
+
+    public function deleteCookies()
+    {
+        if (isset($_COOKIE[self::$loginCookieName]) && isset($_COOKIE[self::$loginCookiePassword])) {
+            setcookie(self::$loginCookieName, "", time() - 3600);
+            setcookie(self::$loginCookiePassword, "", time() - 3600);
+        }
     }
 }

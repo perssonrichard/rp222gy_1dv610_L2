@@ -22,25 +22,30 @@ class LoginView
 
 	public function response()
 	{
-		$validateCookie = $this->model->validateCookies();
-
-		if ($validateCookie) { 
-			$_SESSION["loggedin"] == true;
-			$this->model->message = "Welcome back with cookie";
-		}
-
+		// If not logged in
 		if ($_SESSION["loggedin"] == false) {
 
 			if (isset($_SESSION['showBye']) && $_SESSION['showBye'] == true) {
 				$this->model->message = "Bye bye!";
 				$_SESSION['showBye'] = false;
+				$_SESSION['preventResendPOST'] = true;
 			}
 
 			$response = $this->generateLoginFormHTML($this->model->message);
 			return $response;
 		}
 
-		if ($_SESSION["showWelcome"]) {
+		// If logged in with cookie
+		if (isset($_SESSION['loggedinWithCookie']) && $_SESSION['loggedinWithCookie']) { 
+			$this->model->message = "Welcome back with cookie";
+		}
+		// If logged in with "keep me logged in"
+		if (isset($_SESSION['showWelcomeKeep']) && $_SESSION["showWelcomeKeep"]) {
+			$this->model->message = "Welcome and you will be remembered";
+			$_SESSION['showWelcomeKeep'] = false;
+		}
+		// If logged in
+		if (isset($_SESSION["showWelcome"]) && $_SESSION["showWelcome"]) {
 			$this->model->message = "Welcome";
 			$_SESSION['showWelcome'] = false;
 		}

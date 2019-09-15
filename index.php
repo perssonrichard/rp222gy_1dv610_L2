@@ -1,13 +1,5 @@
 <?php
 
-if(session_id() == '' || !isset($_SESSION)) {
-    session_start();
-}
-
-if (isset($_SESSION["loggedin"]) == false) {
-    $_SESSION["loggedin"] = false;
-}
-
 //INCLUDE THE FILES NEEDED...
 require_once('view/LoginView.php');
 require_once('view/RegisterView.php');
@@ -30,6 +22,19 @@ $loginView = new LoginView($model);
 $registerView = new RegisterView($model);
 $dtv = new DateTimeView();
 $view = new LayoutView($model, $controller);
+
+
+if (session_id() == '' || !isset($_SESSION)) {
+    session_start();
+}
+
+if ($model->validateCookies() && (isset($_SESSION["loggedin"]) == false && $_SESSION["loggedin"] = true)) {
+    $_SESSION['loggedinWithCookie'] = true;
+}
+
+if (isset($_SESSION["loggedin"]) == false) {
+    $_SESSION["loggedin"] = false;
+}
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // If clicking the login button

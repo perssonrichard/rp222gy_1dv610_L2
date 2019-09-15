@@ -36,12 +36,13 @@ class Controller
         if ($validateLogin) {
             // Save cookie if "keep me logged in" is checked
             if (isset($_POST[self::$loginKeep])) {
-                $this->model->setCookies($_POST[self::$loginName], $_POST[self::$loginPassword]);
+                $this->model->setCookies($_POST[self::$loginName]);
+                $this->preventResendPOST('showWelcomeKeep');
+            } else {
+                $this->preventResendPOST('showWelcome');
             }
 
             $_SESSION['loggedin'] = true;
-
-            $this->preventResendPOST('showWelcome');
 
             //Redirect to hardcoded link for testing purposes.
             header('Location: https://perssonrichard.com/1dv610/index.php');
@@ -73,6 +74,7 @@ class Controller
 
     public function userLogOut()
     {
+        $this->model->deleteCookies();
         session_destroy();
         // Start a new session to be able to set variable.
         session_start();
