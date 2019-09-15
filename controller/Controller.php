@@ -45,8 +45,8 @@ class Controller
             $_SESSION['loggedin'] = true;
 
             //Redirect to hardcoded link for testing purposes.
-            header('Location: https://perssonrichard.com/1dv610/index.php');
-            // header('Location: index.php');
+            // header('Location: https://perssonrichard.com/1dv610/index.php');
+            header('Location: index.php');
             exit();
         }
     }
@@ -82,8 +82,8 @@ class Controller
         $this->preventResendPOST('showBye');
 
         //Redirect to hardcoded link for testing purposes.
-        header('Location: https://perssonrichard.com/1dv610/index.php');
-        // header('Location: index.php');
+        // header('Location: https://perssonrichard.com/1dv610/index.php');
+        header('Location: index.php');
         exit();
     }
 

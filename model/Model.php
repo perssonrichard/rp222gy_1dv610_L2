@@ -93,6 +93,7 @@ class Model
             if ($cookiePw == $dbPw) {
                 return true;
             } else {
+                $_SESSION['manipulatedCookie'] = true;
                 return false;
             }
         } else {

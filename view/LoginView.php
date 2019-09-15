@@ -31,13 +31,21 @@ class LoginView
 				$_SESSION['preventResendPOST'] = true;
 			}
 
+			// If trying to login with manipulated cookie
+			if (isset($_SESSION['manipulatedCookie']) && $_SESSION['manipulatedCookie']) {
+				$this->model->message = "Wrong information in cookies";
+				$_SESSION['manipulatedCookie'] = false;
+				$this->model->deleteCookies();
+			}
+
 			$response = $this->generateLoginFormHTML($this->model->message);
 			return $response;
 		}
 
 		// If logged in with cookie
-		if (isset($_SESSION['loggedinWithCookie']) && $_SESSION['loggedinWithCookie']) { 
+		if (isset($_SESSION['loggedinWithCookie']) && $_SESSION['loggedinWithCookie']) {
 			$this->model->message = "Welcome back with cookie";
+			$_SESSION['loggedinWithCookie'] = false;
 		}
 		// If logged in with "keep me logged in"
 		if (isset($_SESSION['showWelcomeKeep']) && $_SESSION["showWelcomeKeep"]) {
