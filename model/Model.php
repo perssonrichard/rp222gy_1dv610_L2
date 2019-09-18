@@ -5,8 +5,8 @@
  */
 class Model
 {
-    private static $loginCookieName = 'LoginView::CookieName';
-    private static $loginCookiePassword = 'LoginView::CookiePassword';
+    public static $loginCookieName = 'LoginView::CookieName';
+    public static $loginCookiePassword = 'LoginView::CookiePassword';
 
     private $connection;
 
@@ -47,8 +47,10 @@ class Model
     {
         // Hash password before saving it to database
         $passwordHash = password_hash($password, PASSWORD_BCRYPT);
+        // Hash password again and save it as a cookie-password
+        $cookiePasswordHash = password_hash($password, PASSWORD_BCRYPT);
 
-        $sql = "INSERT INTO users (user_username, user_pwd) VALUES ('$username', '$passwordHash');";
+        $sql = "INSERT INTO users (user_username, user_pwd, user_cookiePassword) VALUES ('$username', '$passwordHash', '$cookiePasswordHash');";
         mysqli_query($this->connection, $sql);
     }
 
@@ -87,10 +89,7 @@ class Model
             $cookieUser = $_COOKIE[self::$loginCookieName];
             $cookiePw = $_COOKIE[self::$loginCookiePassword];
 
-            $dbUser = $this->fetchUserFromDb($cookieUser);
-            $dbPw = $dbUser['user_pwd'];
-
-            if ($cookiePw == $dbPw) {
+            if ($cookiePw == $_SESSION['oldCookiePassword']) {
                 return true;
             } else {
                 $_SESSION['manipulatedCookie'] = true;
@@ -101,13 +100,28 @@ class Model
         }
     }
 
+    public function rehashUserCookiePassword($username)
+    {
+        $user = $this->fetchUserFromDb($username);
+        $pwCookie = $user['user_cookiePassword'];
+        $rehashedPw = password_hash($pwCookie, PASSWORD_BCRYPT);
+
+        $_SESSION['oldCookiePassword'] = $pwCookie;
+        $_SESSION['newCookiePassword'] = $rehashedPw;
+
+        // Update string
+        $sql = "UPDATE users SET user_cookiePassword='$rehashedPw' WHERE user_username='$username';";
+
+        mysqli_query($this->connection, $sql);
+    }
+
     public function setCookies($username)
     {
         $user = $this->fetchUserFromDb($username);
-        $pw = $user['user_pwd'];
+        $pwCookie = $user['user_cookiePassword'];
 
-        setcookie(self::$loginCookieName, $username);
-        setcookie(self::$loginCookiePassword, $pw);
+        setcookie(self::$loginCookieName, $username, time() + (86400 * 30));
+        setcookie(self::$loginCookiePassword, $pwCookie, time() + (86400 * 30));
     }
 
     public function deleteCookies()

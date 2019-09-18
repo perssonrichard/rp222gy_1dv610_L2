@@ -8,7 +8,7 @@ class RegisterView
     private static $messageId = 'RegisterView::Message';
     private static $name = 'RegisterView::UserName';
     private static $password = 'RegisterView::Password';
-    private static $registration = 'DoRegistration';
+    private static $registration = 'RegisterView::Register';
 
 
     public function __construct(Model $model)

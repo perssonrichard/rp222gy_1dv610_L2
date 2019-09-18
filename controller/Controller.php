@@ -37,6 +37,7 @@ class Controller
             // Save cookie if "keep me logged in" is checked
             if (isset($_POST[self::$loginKeep])) {
                 $this->model->setCookies($_POST[self::$loginName]);
+
                 $this->preventResendPOST('showWelcomeKeep');
             } else {
                 $this->preventResendPOST('showWelcome');
@@ -44,9 +45,14 @@ class Controller
 
             $_SESSION['loggedin'] = true;
 
+            // Save ip and user agent to session to prevent hijacking
+            $ip = $_SERVER['REMOTE_ADDR'];
+            $browser = $_SERVER['HTTP_USER_AGENT'];
+            $_SESSION['sessionValidation'] = $ip . $browser;
+
             //Redirect to hardcoded link for testing purposes.
-            header('Location: https://perssonrichard.com/1dv610/index.php');
-            // header('Location: index.php');
+            // header('Location: https://perssonrichard.com/1dv610/index.php');
+            header('Location: index.php');
             exit();
         }
     }
@@ -54,20 +60,28 @@ class Controller
     public function userRegisterAttempt()
     {
         // Save username input to usernameValue variable if it exist
-        isset($_POST[self::$registerName]) ? $this->model->usernameValue = $_POST[self::$registerName] : '';
+        isset($_POST[self::$registerName]) ? $this->model->usernameVariable = $_POST[self::$registerName] : '';
 
-        if (empty($_POST[self::$registerName])) {
+        $usernameExists = false;
+
+        if (empty($_POST[self::$registerName]) || strlen($_POST[self::$registerName]) < 3) {
             $this->model->message .= "Username has too few characters, at least 3 characters.<br>";
         }
 
-        if (empty($_POST[self::$registerPassword])) {
+        if (empty($_POST[self::$registerPassword]) || strlen($_POST[self::$registerPassword]) < 6) {
             $this->model->message .= "Password has too few characters, at least 6 characters.<br>";
         }
         if ($this->model->checkUsernameInDb($_POST[self::$registerName])) {
+            $usernameExists = true;
             $this->model->message .= "User exist, pick another username.<br>";
         }
 
-        if ($_POST[self::$registerPassword] == $_POST[self::$registerRepeatPassword]) {
+        if (
+            $_POST[self::$registerPassword] == $_POST[self::$registerRepeatPassword] &&
+            $usernameExists == false &&
+            empty($_POST[self::$registerName]) == false &&
+            empty($_POST[self::$registerPassword]) == false
+        ) {
             $this->model->saveUserToDb($_POST[self::$registerName], $_POST[self::$registerPassword]);
         }
     }
@@ -82,8 +96,8 @@ class Controller
         $this->preventResendPOST('showBye');
 
         //Redirect to hardcoded link for testing purposes.
-        header('Location: https://perssonrichard.com/1dv610/index.php');
-        // header('Location: index.php');
+        // header('Location: https://perssonrichard.com/1dv610/index.php');
+        header('Location: index.php');
         exit();
     }
 
