@@ -25,6 +25,14 @@ class LoginView
 		// If not logged in
 		if ($_SESSION["loggedin"] == false) {
 
+			// If registered new user
+			if (isset($_SESSION['registeredNewUser']) && $_SESSION['registeredNewUser'] == true) {
+				$this->model->message = "Registered new user.";
+				$this->model->usernameVariable = $_SESSION['registeredNewUserName'];
+				$_SESSION['registeredNewUser'] = false;
+				$_SESSION['preventResendPOST'] = true;
+			}
+
 			if (isset($_SESSION['showBye']) && $_SESSION['showBye'] == true) {
 				$this->model->message = "Bye bye!";
 				$_SESSION['showBye'] = false;
