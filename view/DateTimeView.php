@@ -1,7 +1,7 @@
 <?php
 
 /**
- * DateTimeView class. Gets the current date and time.
+ * Class that handles the DateTime view
  */
 class DateTimeView
 {

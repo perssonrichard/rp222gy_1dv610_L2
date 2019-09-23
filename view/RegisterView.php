@@ -1,21 +1,27 @@
 <?php
 
+/**
+ * Class that handles the register view
+ */
 class RegisterView
 {
     private $model;
 
-    // Define HTML ID's
-    private static $messageId = 'RegisterView::Message';
-    private static $name = 'RegisterView::UserName';
-    private static $password = 'RegisterView::Password';
-    private static $registration = 'RegisterView::Register';
-
-
+    /**
+     * The RegisterView constructor
+     * 
+     * @param Model $model
+     */
     public function __construct(Model $model)
     {
         $this->model = $model;
     }
 
+    /**
+     * The response on what to render
+     * 
+     * @return string Returns a HTML string
+     */
     public function response()
     {
         $response = $this->generateRegisterFormHTML($this->model->message);
@@ -23,11 +29,22 @@ class RegisterView
         return $response;
     }
 
+    /**
+     * Generate a HTML <a>-tag
+     * 
+     * @return string 
+     */
     public function generateBackToLoginHTML()
     {
         return '<a href="?">Back to login</a>';
     }
 
+    /**
+     * Generate a HTML register form
+     * 
+     * @param string $message A message to write inside a <p>-tag
+     * @return string Return a HTML string
+     */
     private function generateRegisterFormHTML($message)
     {
         return '
@@ -35,17 +52,17 @@ class RegisterView
         <form action="?register" method="post" enctype="multipart/form-data">
 				<fieldset>
 				<legend>Register a new user - Write username and password</legend>
-					<p id="' . self::$messageId . '">' . $message . '</p>
-					<label for="' . self::$name . '">Username :</label>
-					<input type="text" size="20" name="' . self::$name . '" id="' . self::$name . '" value="' . $this->model->usernameVariable . '">
+					<p id="' . Config::$registerMessage . '">' . $message . '</p>
+					<label for="' . Config::$registerName . '">Username :</label>
+					<input type="text" size="20" name="' . Config::$registerName . '" id="' . Config::$registerName . '" value="' . $this->model->usernameVariable . '">
 					<br>
-					<label for="' . self::$password . '">Password  :</label>
-					<input type="password" size="20" name="' . self::$password . '" id="' . self::$password . '" value="">
+					<label for="' . Config::$registerPassword . '">Password  :</label>
+					<input type="password" size="20" name="' . Config::$registerPassword . '" id="' . Config::$registerPassword . '" value="">
 					<br>
-					<label for="' . self::$password . 'Repeat">Repeat password  :</label>
-					<input type="password" size="20" name="' . self::$password . 'Repeat" id="' . self::$password . 'Repeat" value="">
+					<label for="' . Config::$registerPassword . 'Repeat">Repeat password  :</label>
+					<input type="password" size="20" name="' . Config::$registerPassword . 'Repeat" id="' . Config::$registerPassword . 'Repeat" value="">
 					<br>
-					<input id="submit" type="submit" name="' . self::$registration . '" value="Register">
+					<input id="submit" type="submit" name="' . Config::$registerRegistration . '" value="Register">
 					<br>
 				</fieldset>
             </form>

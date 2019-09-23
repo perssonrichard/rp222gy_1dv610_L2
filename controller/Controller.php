@@ -1,133 +1,156 @@
 <?php
 
+require_once('config/config.php');
+
+/**
+ * Controller class
+ */
 class Controller
 {
-    private static $loginName = 'LoginView::UserName';
-    private static $loginPassword = 'LoginView::Password';
-    private static $loginKeep = 'LoginView::KeepMeLoggedIn';
-    private static $registerRepeatPassword = 'RegisterView::PasswordRepeat';
-    private static $registerName = 'RegisterView::UserName';
-    private static $registerPassword = 'RegisterView::Password';
-
+    // Reference to Model class
     private $model;
 
+    /**
+     * Controller constructor
+     * 
+     * @param Model $model
+     */
     public function __construct(Model $model)
     {
         $this->model = $model;
     }
 
+    /**
+     * Triggered when user is trying to log in
+     * 
+     * @return void
+     */
     public function userLoginAttempt()
     {
-        // Save username input to usernameValue variable if it exist
-        isset($_POST[self::$loginName]) ? $this->model->usernameVariable = $_POST[self::$loginName] : '';
+        // Save username input to usernameValue variable if it exist. This is to prevent user input to dissapear on reload
+        isset($_POST[Config::$loginName]) ? $this->model->usernameVariable = $_POST[Config::$loginName] : '';
 
-        // Check db for valid combination of username and password.
-        $validateLogin = $this->model->verifyPassword($_POST[self::$loginName], $_POST[self::$loginPassword]);
+        // Check db for valid combination of username and password
+        $validateLogin = $this->model->verifyPassword($_POST[Config::$loginName], $_POST[Config::$loginPassword]);
 
-        // Check for invalid input.
-        if (empty($_POST[self::$loginName])) {
+        // Check for invalid input
+        if (empty($_POST[Config::$loginName])) {
             $this->model->message .= "Username is missing";
-        } else if (empty($_POST[self::$loginPassword])) {
+        } else if (empty($_POST[Config::$loginPassword])) {
             $this->model->message .= "Password is missing";
         } else if ($validateLogin == false) {
             $this->model->message .= "Wrong name or password";
         }
 
         if ($validateLogin) {
-            // Save cookie if "keep me logged in" is checked
-            if (isset($_POST[self::$loginKeep])) {
-                $this->model->setCookies($_POST[self::$loginName]);
-
-                $this->preventResendPOST('showWelcomeKeep');
-            } else {
-                $this->preventResendPOST('showWelcome');
-            }
-
-            $_SESSION['loggedin'] = true;
-
-            // Save ip and user agent to session to prevent hijacking
-            $ip = $_SERVER['REMOTE_ADDR'];
-            $browser = $_SERVER['HTTP_USER_AGENT'];
-            $_SESSION['sessionValidation'] = $ip . $browser;
-
-            //Redirect to hardcoded link for testing purposes.
-            header('Location: https://perssonrichard.com/1dv610/index.php');
-            // header('Location: index.php');
-            exit();
+            $this->successfulLogin();
         }
     }
 
-    public function userRegisterAttempt()
+    /**
+     * Called when a user's login attempt is successfull
+     * 
+     * @return void
+     */
+    private function successfulLogin()
     {
-        // Save username input to usernameValue variable if it exist
-        isset($_POST[self::$registerName]) ? $this->model->usernameVariable = strip_tags($_POST[self::$registerName]) : '';
+        // Save cookie if "keep me logged in" is checked
+        if (isset($_POST[Config::$loginKeep])) {
+            $this->model->setCookies($_POST[Config::$loginName]);
 
-        $usernameExists = false;
-
-        if (empty($_POST[self::$registerName]) || strlen($_POST[self::$registerName]) < 3) {
-            $this->model->message .= "Username has too few characters, at least 3 characters.<br>";
+            $_SESSION['showWelcomeKeep'] = true;
+            $_SESSION['preventResettingVar'] = false;
+        } else {
+            $_SESSION['showWelcome'] = true;
+            $_SESSION['preventResettingVar'] = false;
         }
 
-        if ($_POST[self::$registerName] != strip_tags($_POST[self::$registerName])) {
-            $this->model->message .= "Username contains invalid characters.<br>";
-        }
+        $_SESSION['loggedin'] = true;
 
-        if (empty($_POST[self::$registerPassword]) || strlen($_POST[self::$registerPassword]) < 6) {
-            $this->model->message .= "Password has too few characters, at least 6 characters.<br>";
-        }
+        // Save ip and user agent to session to prevent hijacking
+        $ip = $_SERVER['REMOTE_ADDR'];
+        $browser = $_SERVER['HTTP_USER_AGENT'];
+        $_SESSION['sessionValidationString'] = $ip . $browser;
 
-        if ($this->model->checkUsernameInDb($_POST[self::$registerName])) {
-            $usernameExists = true;
-            $this->model->message .= "User exists, pick another username.<br>";
-        }
-
-        if ($_POST[self::$registerPassword] != $_POST[self::$registerRepeatPassword]) {
-            $this->model->message = "Passwords do not match.<br>";
-        }
-
-        if (
-            $_POST[self::$registerPassword] == $_POST[self::$registerRepeatPassword] &&
-            $usernameExists == false &&
-            empty($_POST[self::$registerName]) == false &&
-            empty($_POST[self::$registerPassword]) == false &&
-            strlen($_POST[self::$registerName]) >= 3 &&
-            strlen($_POST[self::$registerPassword]) >= 6 &&
-            $_POST[self::$registerName] == strip_tags($_POST[self::$registerName])
-        ) {
-            $this->model->saveUserToDb($_POST[self::$registerName], $_POST[self::$registerPassword]);
-
-            $this->preventResendPOST('registeredNewUser');
-            $_SESSION['registeredNewUserName'] = $_POST[self::$registerName];
-
-            header('Location: https://perssonrichard.com/1dv610/index.php');
-            // header('Location: index.php');
-        }
-    }
-
-    public function userLogOut()
-    {
-        $this->model->deleteCookies();
-        session_destroy();
-        // Start a new session to be able to set variable.
-        session_start();
-
-        $this->preventResendPOST('showBye');
-
-        //Redirect to hardcoded link for testing purposes.
-        header('Location: https://perssonrichard.com/1dv610/index.php');
-        // header('Location: index.php');
+        // Redirect
+        header(Config::$redirectUrl);
         exit();
     }
 
-    private function preventResendPOST($sessionStringVariable)
+    /**
+     * Triggered when user is trying to register
+     * 
+     * @return void
+     */
+    public function userRegisterAttempt()
     {
-        if (isset($_SESSION['preventResendPOST']) == false) {
-            $_SESSION['preventResendPOST'] = true;
+        // Save username input to usernameValue variable if it exist. This is to prevent user input to dissapear on reload
+        isset($_POST[Config::$registerName]) ? $this->model->usernameVariable = strip_tags($_POST[Config::$registerName]) : '';
+
+        $usernameExists = false;
+
+        // Check for invalid input
+        if (empty($_POST[Config::$registerName]) || strlen($_POST[Config::$registerName]) < 3) {
+            $this->model->message .= "Username has too few characters, at least 3 characters.<br>";
+        }
+        if ($_POST[Config::$registerName] != strip_tags($_POST[Config::$registerName])) {
+            $this->model->message .= "Username contains invalid characters.<br>";
+        }
+        if (empty($_POST[Config::$registerPassword]) || strlen($_POST[Config::$registerPassword]) < 6) {
+            $this->model->message .= "Password has too few characters, at least 6 characters.<br>";
+        }
+        if ($this->model->checkUsernameInDb($_POST[Config::$registerName])) {
+            $usernameExists = true;
+            $this->model->message .= "User exists, pick another username.<br>";
+        }
+        if ($_POST[Config::$registerPassword] != $_POST[Config::$registerRepeatPassword]) {
+            $this->model->message = "Passwords do not match.<br>";
         }
 
-        if ($_SESSION['preventResendPOST']) {
-            $_SESSION[$sessionStringVariable] = true;
-            $_SESSION['preventResendPOST'] = false;
+        // If registration is successful
+        if (
+            $_POST[Config::$registerPassword] == $_POST[Config::$registerRepeatPassword] &&
+            $usernameExists == false &&
+            empty($_POST[Config::$registerName]) == false &&
+            empty($_POST[Config::$registerPassword]) == false &&
+            strlen($_POST[Config::$registerName]) >= 3 &&
+            strlen($_POST[Config::$registerPassword]) >= 6 &&
+            $_POST[Config::$registerName] == strip_tags($_POST[Config::$registerName])
+        ) {
+            // Save user
+            $this->model->saveUserToDb($_POST[Config::$registerName], $_POST[Config::$registerPassword]);
+
+            $_SESSION['registeredNewUser'] = true;
+            $_SESSION['preventResettingVar'] = false;
+
+            $_SESSION['registeredNewUserName'] = $_POST[Config::$registerName];
+
+            // Redirect
+            header(Config::$redirectUrl);
         }
+    }
+
+    /**
+     * Triggered when user is trying to log out
+     * 
+     * @return void
+     */
+    public function userLogOut()
+    {
+        // Delete cookies if they exist
+        if (isset($_COOKIE[Config::$loginCookieName]) && isset($_COOKIE[Config::$loginCookiePassword])) {
+            $this->model->deleteCookies();
+        }
+
+        // Destroy and start a new session to be able to set session variable
+        session_destroy();
+        session_start();
+
+        $_SESSION['showBye'] = true;
+        $_SESSION['preventResettingVar'] = false;
+
+        // Redirect
+        header(Config::$redirectUrl);
+        exit();
     }
 }

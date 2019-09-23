@@ -1,36 +1,39 @@
 <?php
 
+require_once('config/config.php');
+
 /**
- *
+ * Model class
  */
 class Model
 {
-    public static $loginCookieName = 'LoginView::CookieName';
-    public static $loginCookiePassword = 'LoginView::CookiePassword';
-
     private $connection;
 
-    // Message to view
+    // Message sent to view
     public $message = "";
     // Save entered username to prevent input field being empty on refresh
     public $usernameVariable = "";
 
-    public function __construct($config)
+    /**
+     * The Model constructor 
+     */
+    public function __construct()
     {
         //Database connection
-        $this->connection = mysqli_connect($config['dbServerName'], $config['dbUsername'], $config['dbPassword'], $config['dbName']);
+        $this->connection = mysqli_connect(Config::$dbServerName, Config::$dbUsername, Config::$dbPassword, Config::$dbName);
     }
 
     /**
      * Check sql database if a user exist
      * 
-     * @return boolean Return true if user exist
+     * @param string $username
+     * @return boolean
      */
     public function checkUsernameInDb($username)
     {
-        // Search string
-        $sql = "SELECT * FROM users WHERE user_username='$username';";
-        // Search database with the search string
+        // SQL search string
+        $sql = "SELECT * FROM users WHERE BINARY user_username='$username';";
+        // Search db
         $result = mysqli_query($this->connection, $sql);
 
         // If user was found, result is larger than 0
@@ -41,7 +44,11 @@ class Model
     }
 
     /**
-     * Save a username with a password to an sql database
+     * Save a username with a password and a cookie password to an sql database
+     * 
+     * @param string $username
+     * @param string $password
+     * @return void
      */
     public function saveUserToDb($username, $password)
     {
@@ -55,17 +62,20 @@ class Model
     }
 
     /**
-     * Get at username from the database.
+     * Fetch a username from the database.
      * 
-     * @return 
+     * @param string $username 
+     * @return string[]
      */
     public function fetchUserFromDb($username)
     {
-        // Search string with BINARY, meaning case sensitive
+        // SQL search string
         $sql = "SELECT * FROM users WHERE BINARY user_username='$username';";
+        // Search db
         $result = mysqli_query($this->connection, $sql);
-        $resultCheck = mysqli_num_rows($result);
 
+        // If user was found, result is larger than 0
+        $resultCheck = mysqli_num_rows($result);
         if ($resultCheck > 0) {
             return mysqli_fetch_assoc($result);
         }
@@ -74,7 +84,9 @@ class Model
     /**
      * Verify a password from a user
      * 
-     * @return boolean Returns true if password verifies
+     * @param string $username
+     * @param string $password
+     * @return boolean
      */
     public function verifyPassword($username, $password)
     {
@@ -83,52 +95,67 @@ class Model
         return password_verify($password, $userDB['user_pwd']);
     }
 
+    /**
+     * Validate username and password cookie
+     * @return boolean
+     */
     public function validateCookies()
     {
-        if (isset($_COOKIE[self::$loginCookieName]) && isset($_COOKIE[self::$loginCookiePassword])) {
-            $cookieUser = $_COOKIE[self::$loginCookieName];
-            $cookiePw = $_COOKIE[self::$loginCookiePassword];
-
-            if ($cookiePw == $_SESSION['oldCookiePassword']) {
-                return true;
-            } else {
-                $_SESSION['manipulatedCookie'] = true;
-                return false;
-            }
+        // It takes a refresh for cookies to update, so check previous cookie saved in a session variable
+        if ($_COOKIE[Config::$loginCookiePassword] == $_SESSION['oldCookiePassword']) {
+            return true;
         } else {
+            // If cookies have been modified
+            $_SESSION['manipulatedCookie'] = true;
             return false;
         }
     }
 
+    /**
+     * Rehash a cookie password and save it to mysql database
+     * 
+     * @param string $username
+     * @return void
+     */
     public function rehashUserCookiePassword($username)
     {
         $user = $this->fetchUserFromDb($username);
-        $pwCookie = $user['user_cookiePassword'];
-        $rehashedPw = password_hash($pwCookie, PASSWORD_BCRYPT);
+        $password = $user['user_cookiePassword'];
+        $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
 
-        $_SESSION['oldCookiePassword'] = $pwCookie;
-        $_SESSION['newCookiePassword'] = $rehashedPw;
+        // It takes a refresh for cookies to update, so save previous cookie in session variable
+        $_SESSION['oldCookiePassword'] = $password;
 
         // Update string
-        $sql = "UPDATE users SET user_cookiePassword='$rehashedPw' WHERE user_username='$username';";
+        $sql = "UPDATE users SET user_cookiePassword='$hashedPassword' WHERE user_username='$username';";
 
         mysqli_query($this->connection, $sql);
     }
 
+    /**
+     * Set username and password cookies
+     * 
+     * @param string $username
+     * @return void
+     */
     public function setCookies($username)
     {
         $user = $this->fetchUserFromDb($username);
-        $pwCookie = $user['user_cookiePassword'];
+        $password = $user['user_cookiePassword'];
 
-        setcookie(self::$loginCookieName, $username, time() + (86400 * 30));
-        setcookie(self::$loginCookiePassword, $pwCookie, time() + (86400 * 30));
+        // Save cookies 24 hours
+        setcookie(Config::$loginCookieName, $username, time() + (86400 * 30));
+        setcookie(Config::$loginCookiePassword, $password, time() + (86400 * 30));
     }
 
+    /**
+     * Delete username and password cookie
+     * 
+     * @return void
+     */
     public function deleteCookies()
     {
-        if (isset($_COOKIE[self::$loginCookieName]) && isset($_COOKIE[self::$loginCookiePassword])) {
-            setcookie(self::$loginCookieName, "", time() - 3600);
-            setcookie(self::$loginCookiePassword, "", time() - 3600);
-        }
+        setcookie(Config::$loginCookieName, "", time() - 3600);
+        setcookie(Config::$loginCookiePassword, "", time() - 3600);
     }
 }
