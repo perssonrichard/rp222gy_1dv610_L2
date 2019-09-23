@@ -32,7 +32,7 @@ class RegisterView
     /**
      * Generate a HTML <a>-tag
      * 
-     * @return string 
+     * @return string
      */
     public function generateBackToLoginHTML()
     {

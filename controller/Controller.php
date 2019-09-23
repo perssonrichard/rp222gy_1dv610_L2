@@ -59,10 +59,8 @@ class Controller
             $this->model->setCookies($_POST[Config::$loginName]);
 
             $_SESSION['showWelcomeKeep'] = true;
-            $_SESSION['preventResettingVar'] = false;
         } else {
             $_SESSION['showWelcome'] = true;
-            $_SESSION['preventResettingVar'] = false;
         }
 
         $_SESSION['loggedin'] = true;
@@ -71,6 +69,24 @@ class Controller
         $ip = $_SERVER['REMOTE_ADDR'];
         $browser = $_SERVER['HTTP_USER_AGENT'];
         $_SESSION['sessionValidationString'] = $ip . $browser;
+
+        // Redirect
+        header(Config::$redirectUrl);
+        exit();
+    }
+
+    /**
+     * Called when a register attempt is successful
+     * 
+     * @return void
+     */
+    private function successfulRegister()
+    {
+        // Save user
+        $this->model->saveUserToDb($_POST[Config::$registerName], $_POST[Config::$registerPassword]);
+
+        $_SESSION['registeredNewUser'] = true;
+        $_SESSION['registeredNewUserName'] = $_POST[Config::$registerName];
 
         // Redirect
         header(Config::$redirectUrl);
@@ -87,46 +103,33 @@ class Controller
         // Save username input to usernameValue variable if it exist. This is to prevent user input to dissapear on reload
         isset($_POST[Config::$registerName]) ? $this->model->usernameVariable = strip_tags($_POST[Config::$registerName]) : '';
 
-        $usernameExists = false;
+        $registration = true;
 
         // Check for invalid input
         if (empty($_POST[Config::$registerName]) || strlen($_POST[Config::$registerName]) < 3) {
             $this->model->message .= "Username has too few characters, at least 3 characters.<br>";
+            $registration = false;
         }
         if ($_POST[Config::$registerName] != strip_tags($_POST[Config::$registerName])) {
             $this->model->message .= "Username contains invalid characters.<br>";
+            $registration = false;
         }
         if (empty($_POST[Config::$registerPassword]) || strlen($_POST[Config::$registerPassword]) < 6) {
             $this->model->message .= "Password has too few characters, at least 6 characters.<br>";
+            $registration = false;
         }
-        if ($this->model->checkUsernameInDb($_POST[Config::$registerName])) {
-            $usernameExists = true;
+        if ($this->model->usernameExist($_POST[Config::$registerName])) {
             $this->model->message .= "User exists, pick another username.<br>";
+            $registration = false;
         }
         if ($_POST[Config::$registerPassword] != $_POST[Config::$registerRepeatPassword]) {
             $this->model->message = "Passwords do not match.<br>";
+            $registration = false;
         }
 
         // If registration is successful
-        if (
-            $_POST[Config::$registerPassword] == $_POST[Config::$registerRepeatPassword] &&
-            $usernameExists == false &&
-            empty($_POST[Config::$registerName]) == false &&
-            empty($_POST[Config::$registerPassword]) == false &&
-            strlen($_POST[Config::$registerName]) >= 3 &&
-            strlen($_POST[Config::$registerPassword]) >= 6 &&
-            $_POST[Config::$registerName] == strip_tags($_POST[Config::$registerName])
-        ) {
-            // Save user
-            $this->model->saveUserToDb($_POST[Config::$registerName], $_POST[Config::$registerPassword]);
-
-            $_SESSION['registeredNewUser'] = true;
-            $_SESSION['preventResettingVar'] = false;
-
-            $_SESSION['registeredNewUserName'] = $_POST[Config::$registerName];
-
-            // Redirect
-            header(Config::$redirectUrl);
+        if ($registration) {
+            $this->successfulRegister();
         }
     }
 
@@ -142,12 +145,11 @@ class Controller
             $this->model->deleteCookies();
         }
 
-        // Destroy and start a new session to be able to set session variable
+        // Destroy and start a new session to be able to set new session variable
         session_destroy();
         session_start();
 
         $_SESSION['showBye'] = true;
-        $_SESSION['preventResettingVar'] = false;
 
         // Redirect
         header(Config::$redirectUrl);

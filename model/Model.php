@@ -29,7 +29,7 @@ class Model
      * @param string $username
      * @return boolean
      */
-    public function checkUsernameInDb($username)
+    public function usernameExist($username)
     {
         // SQL search string
         $sql = "SELECT * FROM users WHERE BINARY user_username='$username';";
@@ -67,7 +67,7 @@ class Model
      * @param string $username 
      * @return string[]
      */
-    public function fetchUserFromDb($username)
+    private function getUser($username)
     {
         // SQL search string
         $sql = "SELECT * FROM users WHERE BINARY user_username='$username';";
@@ -82,7 +82,7 @@ class Model
     }
 
     /**
-     * Verify a password from a user
+     * Verify input password with database password
      * 
      * @param string $username
      * @param string $password
@@ -90,7 +90,7 @@ class Model
      */
     public function verifyPassword($username, $password)
     {
-        $userDB = $this->fetchUserFromDb($username);
+        $userDB = $this->getUser($username);
 
         return password_verify($password, $userDB['user_pwd']);
     }
@@ -119,7 +119,7 @@ class Model
      */
     public function rehashUserCookiePassword($username)
     {
-        $user = $this->fetchUserFromDb($username);
+        $user = $this->getUser($username);
         $password = $user['user_cookiePassword'];
         $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
 
@@ -140,7 +140,7 @@ class Model
      */
     public function setCookies($username)
     {
-        $user = $this->fetchUserFromDb($username);
+        $user = $this->getUser($username);
         $password = $user['user_cookiePassword'];
 
         // Save cookies 24 hours

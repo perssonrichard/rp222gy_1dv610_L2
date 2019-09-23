@@ -66,10 +66,14 @@ if ($sessionValidationString !== "") {
     }
 }
 
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // If clicking the login button
     if (isset($_POST['LoginView::Login'])) {
-        $controller->userLoginAttempt();
+        // Prevent trying to resend POST
+        if (isset($_SESSION['preventResettingVar']) == false || $_SESSION['preventResettingVar'] != true) {
+            $controller->userLoginAttempt();
+        }
     }
     // If clicking the register button
     if (isset($_POST['RegisterView::Register'])) {
@@ -80,6 +84,5 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $controller->userLogOut();
     }
 }
-
 // Render content
 $view->render($_SESSION['loggedin'], $loginView, $registerView, $dtv);

@@ -26,9 +26,20 @@ class LoginView
 	{
 		// If not logged in
 		if ($_SESSION["loggedin"] == false) {
-			$this->notLoggedIn();
+			$response = $this->notLoggedIn();
+		} else {
+			$response = $this->loggedIn();
 		}
+		return $response;
+	}
 
+	/**
+	 * Called by response function if user is logged in
+	 * 
+	 * @return string Returns a HTML string
+	 */
+	private function loggedIn()
+	{
 		// If logged in with cookie
 		if (isset($_SESSION['loggedinWithCookie']) && $_SESSION['loggedinWithCookie']) {
 			$this->model->message = "Welcome back with cookie";
@@ -40,16 +51,17 @@ class LoginView
 			$this->model->message = "Welcome and you will be remembered";
 
 			$_SESSION['showWelcomeKeep'] = false;
+			$_SESSION['preventResettingVar'] = true;
 		}
 		// If logged in
 		if (isset($_SESSION["showWelcome"]) && $_SESSION["showWelcome"]) {
 			$this->model->message = "Welcome";
 
 			$_SESSION['showWelcome'] = false;
+			$_SESSION['preventResettingVar'] = true;
 		}
 
-		$response = $this->generateLogoutButtonHTML($this->model->message);
-		return $response;
+		return $this->generateLogoutButtonHTML($this->model->message);
 	}
 
 	/**
@@ -83,8 +95,7 @@ class LoginView
 			$this->model->deleteCookies();
 		}
 
-		$response = $this->generateLoginFormHTML($this->model->message);
-		return $response;
+		return $this->generateLoginFormHTML($this->model->message);
 	}
 
 	/**
