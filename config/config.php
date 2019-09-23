@@ -5,18 +5,18 @@ class Config
     /**
      * REMOTE SERVER
      */
-    // public static $dbServerName = "localhost";
-    // public static $dbUsername = "persglgr_root";
-    // public static $dbPassword = "s.Ki~F@zE@6L";
-    // public static $dbName = "persglgr_loginsystem";
+    public static $dbServerName = "localhost";
+    public static $dbUsername = "persglgr_root";
+    public static $dbPassword = "s.Ki~F@zE@6L";
+    public static $dbName = "persglgr_loginsystem";
 
     /**
      * LOCAL SERVER
      */
-    public static $dbServerName = "localhost";
-    public static $dbUsername = "root";
-    public static $dbPassword = "";
-    public static $dbName = "loginsystem";
+    // public static $dbServerName = "localhost";
+    // public static $dbUsername = "root";
+    // public static $dbPassword = "";
+    // public static $dbName = "loginsystem";
 
     // Define login view HTML ID's
     public static $loginCookieName = 'LoginView::CookieName';
@@ -36,8 +36,8 @@ class Config
     public static $registerRegistration = 'RegisterView::Register';
 
     // Remote server
-    // public static $redirectUrl = 'Location: https://perssonrichard.com/1dv610/index.php';
+    public static $redirectUrl = 'Location: https://perssonrichard.com/1dv610/index.php';
 
     // Local server
-    public static $redirectUrl = 'Location: index.php';
+    // public static $redirectUrl = 'Location: index.php';
 }
