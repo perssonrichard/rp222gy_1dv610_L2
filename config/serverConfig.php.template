@@ -1,0 +1,12 @@
+<?php
+
+class ServerConfig
+{
+    /**
+     * REMOTE SERVER CONNECTION
+     */
+    public static $dbServerName = "SERVERNAME";
+    public static $dbUsername = "USERNAME";
+    public static $dbPassword = "PASSWORD";
+    public static $dbName = "DATABASE NAME";
+}

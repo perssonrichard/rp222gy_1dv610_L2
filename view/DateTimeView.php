@@ -1,15 +1,7 @@
 <?php
 
-/**
- * Class that handles the DateTime view
- */
 class DateTimeView
 {
-	/**
-	 * Returns the current date and time.
-	 * 
-	 * @return string Returns a p-tag with the current date and time.
-	 */
 	public function show()
 	{
 		date_default_timezone_set('Europe/Stockholm');

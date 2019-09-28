@@ -1,17 +1,9 @@
 <?php
 
-/**
- * Class that handles the register view
- */
 class RegisterView
 {
     private $model;
 
-    /**
-     * The RegisterView constructor
-     * 
-     * @param Model $model
-     */
     public function __construct(Model $model)
     {
         $this->model = $model;
@@ -19,8 +11,6 @@ class RegisterView
 
     /**
      * The response on what to render
-     * 
-     * @return string Returns a HTML string
      */
     public function response()
     {
@@ -29,22 +19,11 @@ class RegisterView
         return $response;
     }
 
-    /**
-     * Generate a HTML <a>-tag
-     * 
-     * @return string
-     */
     public function generateBackToLoginHTML()
     {
         return '<a href="?">Back to login</a>';
     }
 
-    /**
-     * Generate a HTML register form
-     * 
-     * @param string $message A message to write inside a <p>-tag
-     * @return string Return a HTML string
-     */
     private function generateRegisterFormHTML($message)
     {
         return '
